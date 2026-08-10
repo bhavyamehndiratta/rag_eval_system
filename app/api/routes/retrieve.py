@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.models.retrieval import RetrievalRequest, RetrievalResponse, ChunkResult
-from app.services.retrieval import semantic_retrieve, bm25_retrieve, hybrid_retrieve
+from app.services.retrieval import semantic_retrieve, bm25_retrieve, hybrid_retrieve, reranked_hybrid_retrieve, hyde_retrieve
 
 router = APIRouter(prefix="/retrieve", tags=["retrieve"])
 
@@ -10,6 +10,10 @@ def retrieve(request: RetrievalRequest):
         results = semantic_retrieve(request.query, request.k)
     elif request.strategy == "bm25":
         results = bm25_retrieve(request.query, request.k)
+    elif request.strategy == "reranked":
+        results = reranked_hybrid_retrieve(request.query, request.k, request.alpha)
+    elif request.strategy == "hyde":
+        results = hyde_retrieve(request.query, request.k, request.alpha)
     else:
         results = hybrid_retrieve(request.query, request.k, request.alpha)
 

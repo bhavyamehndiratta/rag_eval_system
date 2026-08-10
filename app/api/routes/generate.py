@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.models.generation import GenerationRequest, GenerationResponse
-from app.services.retrieval import semantic_retrieve, bm25_retrieve, hybrid_retrieve
+from app.services.retrieval import semantic_retrieve, bm25_retrieve, hybrid_retrieve, reranked_hybrid_retrieve, hyde_retrieve
 from app.services.generation import generate_answer
 
 router = APIRouter(prefix="/generate", tags=["generate"])
@@ -11,6 +11,10 @@ def generate(request: GenerationRequest):
         chunks = semantic_retrieve(request.query, request.k)
     elif request.strategy == "bm25":
         chunks = bm25_retrieve(request.query, request.k)
+    elif request.strategy == "reranked":
+        chunks = reranked_hybrid_retrieve(request.query, request.k, request.alpha)
+    elif request.strategy == "hyde":
+        chunks = hyde_retrieve(request.query, request.k, request.alpha)
     else:
         chunks = hybrid_retrieve(request.query, request.k, request.alpha)
 

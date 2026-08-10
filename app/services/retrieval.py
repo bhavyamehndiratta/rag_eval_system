@@ -73,3 +73,17 @@ def hybrid_retrieve(query: str, k: int = 5, alpha: float = 0.5) -> list[dict]:
         {"id": ids[i], "text": corpus[i], "metadata": metadata[i], "score": float(combined[i])}
         for i in top_k
     ]
+
+
+def reranked_hybrid_retrieve(query: str, k: int = 5, alpha: float = 0.5, fetch_n: int = 20) -> list[dict]:
+    from app.services.reranking import rerank
+    candidates = hybrid_retrieve(query, k=fetch_n, alpha=alpha)
+    return rerank(query, candidates, top_k=k)
+
+
+def hyde_retrieve(query: str, k: int = 5, alpha: float = 0.5) -> list[dict]:
+    from app.services.hyde import generate_hypothetical_answer
+    from app.services.reranking import rerank
+    hypothetical = generate_hypothetical_answer(query)
+    candidates = hybrid_retrieve(hypothetical, k=20, alpha=alpha)
+    return rerank(query, candidates, top_k=k)
