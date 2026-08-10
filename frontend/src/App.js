@@ -9,13 +9,18 @@ function App() {
   const [answer, setAnswer] = useState("");
   const [chunks, setChunks] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [evalResults, setEvalResults] = useState(null);
+  const [evalError, setEvalError] = useState("");
   const [history, setHistory] = useState([]);
   const [tab, setTab] = useState("ask");
 
   const handleAsk = async () => {
     if (!query.trim()) return;
     setLoading(true);
+    setError("");
+    setAnswer("");
+    setChunks([]);
     try {
       const res = await axios.post(`${API}/generate`, {
         query,
@@ -26,18 +31,28 @@ function App() {
       setAnswer(res.data.answer);
       setChunks(res.data.chunks_used);
     } catch (e) {
-      setAnswer("Error: " + e.message);
+      if (e.code === "ERR_NETWORK") {
+        setError("Cannot connect to backend. Make sure the FastAPI server is running on port 8000.");
+      } else {
+        setError(e.response?.data?.detail || e.message);
+      }
     }
     setLoading(false);
   };
 
   const handleEval = async () => {
     setLoading(true);
+    setEvalError("");
+    setEvalResults(null);
     try {
       const res = await axios.post(`${API}/evaluate`);
       setEvalResults(res.data);
     } catch (e) {
-      setEvalResults({ error: e.message });
+      if (e.code === "ERR_NETWORK") {
+        setEvalError("Cannot connect to backend.");
+      } else {
+        setEvalError(e.response?.data?.detail || e.message);
+      }
     }
     setLoading(false);
   };
@@ -104,9 +119,23 @@ function App() {
               disabled={loading}
               style={{ padding: "10px 20px", background: "#2A6FDB", color: "white", border: "none", borderRadius: 6, cursor: "pointer", fontWeight: 600 }}
             >
-              {loading ? "..." : "Ask"}
+              {loading ? "Thinking..." : "Ask"}
             </button>
           </div>
+
+          {error && (
+            <div style={{ background: "#fff0f0", border: "1px solid #ffcccc", borderRadius: 6, padding: 12, marginBottom: 12, color: "#cc0000", fontSize: 14 }}>
+              {error}
+            </div>
+          )}
+
+          {!answer && !error && !loading && (
+            <p style={{ color: "#aaa", fontSize: 14 }}>Ask a question to see the answer and retrieved chunks.</p>
+          )}
+
+          {loading && (
+            <p style={{ color: "#888", fontSize: 14 }}>Retrieving and generating answer...</p>
+          )}
 
           {answer && (
             <div style={{ background: "#f8f9fa", borderRadius: 8, padding: 20, marginBottom: 16 }}>
@@ -133,20 +162,29 @@ function App() {
 
       {tab === "evaluate" && (
         <div>
+          <p style={{ color: "#666", fontSize: 14, marginBottom: 16 }}>
+            Runs all 5 retrieval strategies against the labeled test set and computes Precision@K, Recall@K, and latency.
+          </p>
           <button
             onClick={handleEval}
             disabled={loading}
             style={{ padding: "10px 24px", background: "#2A6FDB", color: "white", border: "none", borderRadius: 6, cursor: "pointer", fontWeight: 600, marginBottom: 20 }}
           >
-            {loading ? "Running..." : "Run Evaluation"}
+            {loading ? "Running evaluation..." : "Run Evaluation"}
           </button>
+
+          {evalError && (
+            <div style={{ background: "#fff0f0", border: "1px solid #ffcccc", borderRadius: 6, padding: 12, marginBottom: 12, color: "#cc0000", fontSize: 14 }}>
+              {evalError}
+            </div>
+          )}
 
           {evalResults && (
             <div>
-              {Object.entries(evalResults).map(([strategy, data]) => (
-                <div key={strategy} style={{ border: "1px solid #e0e0e0", borderRadius: 8, padding: 16, marginBottom: 12 }}>
-                  <h3 style={{ fontWeight: 700, marginBottom: 8 }}>{strategy}</h3>
-                  <pre style={{ fontSize: 13, margin: 0 }}>{JSON.stringify(data, null, 2)}</pre>
+              {Object.entries(evalResults).map(([key, data]) => (
+                <div key={key} style={{ border: "1px solid #e0e0e0", borderRadius: 8, padding: 16, marginBottom: 12 }}>
+                  <h3 style={{ fontWeight: 700, marginBottom: 8, textTransform: "capitalize" }}>{key}</h3>
+                  <pre style={{ fontSize: 13, margin: 0, background: "#f8f9fa", padding: 10, borderRadius: 4 }}>{JSON.stringify(data, null, 2)}</pre>
                 </div>
               ))}
             </div>
@@ -156,7 +194,7 @@ function App() {
 
       {tab === "history" && (
         <div>
-          {history.length === 0 && <p style={{ color: "#888" }}>No queries yet.</p>}
+          {history.length === 0 && <p style={{ color: "#aaa", fontSize: 14 }}>No queries yet. Ask a question first.</p>}
           {history.map((item, i) => (
             <div key={i} style={{ border: "1px solid #e0e0e0", borderRadius: 8, padding: 16, marginBottom: 12 }}>
               <div style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>
