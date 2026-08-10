@@ -1,0 +1,14 @@
+[
+  {
+    "question": "What is retrieval-augmented generation?",
+    "relevant_chunk_ids": ["test_chunk_0"]
+  },
+  {
+    "question": "How does RAG reduce hallucinations?",
+    "relevant_chunk_ids": ["test_chunk_0"]
+  },
+  {
+    "question": "What retrieval methods does RAG use?",
+    "relevant_chunk_ids": ["test_chunk_0"]
+  }
+]
