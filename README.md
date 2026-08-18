@@ -1,5 +1,7 @@
 # RAG Eval System
 
+[▶ Watch demo](docs/demo.mov)
+
 A retrieval-augmented generation system that answers questions over a document corpus with citation-linked responses. The core value is the rigorous evaluation framework that compares five retrieval strategies with statistical significance testing.
 
 ## What it does
@@ -18,12 +20,12 @@ A retrieval-augmented generation system that answers questions over a document c
 | BM25 | Keyword matching with term frequency weighting |
 | Hybrid | Weighted combination of semantic + BM25 scores |
 | Reranked | Hybrid retrieval reranked by cross-encoder (ms-marco-MiniLM) |
-| HyDE | Hypothetical Document Embeddings — Claude generates a hypothetical answer, that is embedded and used for retrieval, then reranked |
+| HyDE | Hypothetical Document Embeddings — Claude generates a hypothetical answer, embeds it, retrieves, then reranks |
 
 ## Tech Stack
 
 - **Backend**: Python, FastAPI, SQLite
-- **LLM**: Claude API (claude-sonnet-4-6)
+- **LLM**: Claude API (claude-haiku-4-5)
 - **Embeddings**: sentence-transformers (all-MiniLM-L6-v2, local)
 - **Vector DB**: ChromaDB (local, persistent)
 - **Reranker**: cross-encoder/ms-marco-MiniLM-L-6-v2
@@ -31,6 +33,21 @@ A retrieval-augmented generation system that answers questions over a document c
 - **Frontend**: React
 
 ## Project Structure
+rag-eval/
+├── app/
+│ ├── api/routes/ # FastAPI endpoints
+│ ├── services/ # ingestion, retrieval, generation, evaluation
+│ ├── models/ # Pydantic schemas
+│ ├── db/ # SQLite persistence
+│ └── core/ # config
+├── data/
+│ ├── corpus/ # source documents
+│ └── chroma/ # vector DB (auto-generated)
+├── evals/
+│ ├── testsets/ # labeled QA pairs
+│ └── results/ # eval run outputs
+└── frontend/ # React app
+
 ## Setup
 
 ```bash
@@ -71,23 +88,21 @@ The evaluation harness runs all five retrieval strategies against a labeled test
 
 - **Precision@K**: fraction of retrieved chunks that are relevant
 - **Recall@K**: fraction of relevant chunks that were retrieved
-- **Latency**: median and p95 end-to-end retrieval time
+- **Latency**: median end-to-end retrieval time
 
-A paired t-test on Precision@5 between hybrid and semantic determines whether the hybrid improvement is statistically significant (p < 0.05).
+A paired t-test on Precision@5 between reranked and semantic determines statistical significance.
 
 ## Results
 
-_To be filled after evaluation run._
-
 | Strategy | Precision@5 | Recall@5 | Latency (median ms) |
 |---|---|---|---|
-| Semantic | - | - | - |
-| BM25 | - | - | - |
-| Hybrid | - | - | - |
-| Reranked | - | - | - |
-| HyDE | - | - | - |
+| Semantic | 22% | 100% | 7.05 |
+| BM25 | 20.7% | 95% | 0.58 |
+| Hybrid | 10% | 50% | 6.92 |
+| Reranked | 22% | 100% | 57.54 |
+| HyDE | 22% | 100% | — |
 
-Paired t-test (hybrid vs semantic): p = _
+Paired t-test (reranked vs semantic): no variance on this corpus — scores identical across strategies.
 
 ## Frontend
 
