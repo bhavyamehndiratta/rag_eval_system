@@ -2,8 +2,7 @@ import json
 import time
 import statistics
 from pathlib import Path
-from scipy import stats
-from app.services.retrieval import semantic_retrieve, bm25_retrieve, hybrid_retrieve, reranked_hybrid_retrieve, hyde_retrieve
+from app.services.retrieval import semantic_retrieve, bm25_retrieve, hybrid_retrieve, reranked_hybrid_retrieve
 
 
 STRATEGIES = {
@@ -11,17 +10,16 @@ STRATEGIES = {
     "bm25": lambda q, k: bm25_retrieve(q, k),
     "hybrid": lambda q, k: hybrid_retrieve(q, k),
     "reranked": lambda q, k: reranked_hybrid_retrieve(q, k),
-    "hyde": lambda q, k: hyde_retrieve(q, k),
 }
 
 
-def precision_at_k(retrieved_ids: list[str], relevant_ids: list[str], k: int) -> float:
+def precision_at_k(retrieved_ids: list, relevant_ids: list, k: int) -> float:
     retrieved_k = retrieved_ids[:k]
     hits = sum(1 for id_ in retrieved_k if id_ in relevant_ids)
     return hits / k if k > 0 else 0.0
 
 
-def recall_at_k(retrieved_ids: list[str], relevant_ids: list[str], k: int) -> float:
+def recall_at_k(retrieved_ids: list, relevant_ids: list, k: int) -> float:
     retrieved_k = retrieved_ids[:k]
     hits = sum(1 for id_ in retrieved_k if id_ in relevant_ids)
     return hits / len(relevant_ids) if relevant_ids else 0.0
@@ -52,22 +50,26 @@ def run_evaluation(testset_path: str, k: int = 5) -> dict:
     precision_scores = {}
     for strategy, data in results.items():
         summary[strategy] = {
-            "precision_at_k": round(statistics.mean(data["precision"]), 4),
-            "recall_at_k": round(statistics.mean(data["recall"]), 4),
+            "precision_at_5": round(statistics.mean(data["precision"]), 4),
+            "recall_at_5": round(statistics.mean(data["recall"]), 4),
             "latency_median_ms": round(statistics.median(data["latencies"]) * 1000, 2),
         }
         precision_scores[strategy] = data["precision"]
 
-    # Paired t-test: hybrid vs semantic
-    t_stat, p_value = stats.ttest_rel(
-        precision_scores["hybrid"],
-        precision_scores["semantic"],
-    )
-    summary["statistical_test"] = {
-        "test": "paired t-test hybrid vs semantic precision@k",
-        "t_statistic": round(float(t_stat), 4),
-        "p_value": round(float(p_value), 4),
-        "significant": bool(p_value < 0.05),
-    }
+    diffs = [r - s for r, s in zip(precision_scores["reranked"], precision_scores["semantic"])]
+    if any(d != 0 for d in diffs):
+        from scipy import stats
+        t_stat, p_value = stats.ttest_rel(precision_scores["reranked"], precision_scores["semantic"])
+        summary["statistical_test"] = {
+            "test": "paired t-test reranked vs semantic precision@5",
+            "t_statistic": round(float(t_stat), 4),
+            "p_value": round(float(p_value), 4),
+            "significant": bool(p_value < 0.05),
+        }
+    else:
+        summary["statistical_test"] = {
+            "test": "paired t-test reranked vs semantic precision@5",
+            "note": "no variance between strategies on this corpus — scores identical",
+        }
 
     return summary

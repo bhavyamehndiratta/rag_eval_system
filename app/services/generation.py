@@ -2,7 +2,7 @@ import anthropic
 from app.core.config import settings
 
 client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
-MODEL = "claude-sonnet-4-6"
+MODEL = "claude-haiku-4-5-20251001"
 
 
 def generate_answer(query: str, chunks: list[dict]) -> dict:
