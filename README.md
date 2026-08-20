@@ -1,6 +1,6 @@
 # RAG Eval System
 
-[▶ Watch demo](docs/demo.mov)
+[▶ Watch demo](https://youtu.be/ickxzynrv9o)
 
 A retrieval-augmented generation system that answers questions over a document corpus with citation-linked responses. The core value is the rigorous evaluation framework that compares five retrieval strategies with statistical significance testing.
 
