@@ -102,6 +102,7 @@ A paired t-test on Precision@5 between reranked and semantic determines statisti
 | Reranked | 22% | 100% | 57.54 |
 | HyDE | 22% | 100% | — |
 
+Answer faithfulness: 90% (evaluated on 30 labeled question/answer pairs using LLM-as-judge)
 Paired t-test (reranked vs semantic): no variance on this corpus — scores identical across strategies.
 
 ## Frontend
