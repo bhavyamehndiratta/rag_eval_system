@@ -32,7 +32,7 @@ A retrieval-augmented generation system that answers questions over a document c
 - **Keyword retrieval**: rank-bm25
 - **Frontend**: React
 
-## Project Structure
+```
 rag-eval/
 ├── app/
 │ ├── api/routes/ # FastAPI endpoints
@@ -47,7 +47,7 @@ rag-eval/
 │ ├── testsets/ # labeled QA pairs
 │ └── results/ # eval run outputs
 └── frontend/ # React app
-
+```
 ## Setup
 
 ```bash
