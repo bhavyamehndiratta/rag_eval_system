@@ -30,7 +30,7 @@ A retrieval-augmented generation system that answers questions over a document c
 - **Vector DB**: ChromaDB (local, persistent)
 - **Reranker**: cross-encoder/ms-marco-MiniLM-L-6-v2
 - **Keyword retrieval**: rank-bm25
-- **Frontend**: React
+- **Frontend**: React, TypeScript
 
 ```
 rag-eval/
@@ -46,7 +46,7 @@ rag-eval/
 ├── evals/
 │ ├── testsets/ # labeled QA pairs
 │ └── results/ # eval run outputs
-└── frontend/ # React app
+└── frontend/ # React + TypeScript app
 ```
 ## Setup
 

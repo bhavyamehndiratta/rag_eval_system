@@ -9,3 +9,4 @@ data/corpus/*
 !data/corpus/.gitkeep
 evals/results/*
 !evals/results/.gitkeep
+node_modules/
